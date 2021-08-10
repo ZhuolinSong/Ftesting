@@ -1,0 +1,24 @@
+language: r
+sudo: false
+
+r:
+  - oldrel
+  - release
+  - devel
+cache: packages
+
+# need this for current nlme:
+r_packages:
+  - nlme
+
+
+after_failure:
+  - ./travis-tool.sh dump_logs
+
+notifications:
+  email:
+    recipients:
+      - lxiao5@ncsu.edu
+      - cli9@ncsu.edu
+    on_success: change
+    on_failure: always

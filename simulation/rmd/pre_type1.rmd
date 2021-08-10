@@ -1,0 +1,16 @@
+---
+Title: "Presentation: type_1 error"
+author: ""
+date: ""
+---
+
+```{r, include=F}
+devtools::load_all()
+library(parallel)
+load("sim_type1.RData")
+```
+
+```{r}
+sim_type1
+```
+
