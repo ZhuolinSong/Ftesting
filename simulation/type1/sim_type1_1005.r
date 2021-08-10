@@ -10,5 +10,5 @@ s_n <- 100
 s_m <- 5
 
 
-sim_type1_1005 <- type_1(s_k, s_n, s_m, fast.tn=T, semi.iter = F)
+sim_type1_1005 <- type_1(seed, s_k, s_n, s_m, fast.tn=T, semi.iter = F)
 save(sim_type1_1005, file = "sim_type1_1005.RData")
