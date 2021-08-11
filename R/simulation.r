@@ -2,40 +2,53 @@
 type_1 <- function(seed = 2021087, k, n, m, L = 1000, ...) {
     sim.success <- 0
     sim.stats <- c()
+    sim.sigma2 <- c()
+    l_time <- list()
     times <- seq(-1, 1, length.out = 80) # all possible time points
     while (sim.success < k) {
         set.seed(seed + sim.success)
         data <- gen.data(deviation = "trigonometric", nsubj = n, r = 0, M = m)
-        face.b <- try(bootstrap.face(data, nbs = L, argvals.new = times, ...),
-                    silent = T)
-        if ("try-error" %in% class(face.b)) {# issue with null fit
+        l_time[[sim.success + 1]] <- try(system.time(
+            face.b <- bootstrap.face(data, nbs = L, argvals.new = times, ...))[1:3],
+            silent = T)
+        if ("try-error" %in% class(l_time[[sim.success + 1]])) {# issue with null fit
             seed <- seed + 1
             next
         }
         sim.success <- sim.success + 1
         sim.stats <- c(sim.stats, face.b$p)
+        sim.sigma2 <- c(sim.sigma2, face.b$sigma2)
     }
-    c(mean(sim.stats <= 0.05), mean(sim.stats <= 0.1))
+
+    list(c(mean(sim.stats <= 0.05), mean(sim.stats <= 0.1)),
+        sum((sim.sigma2 - 1)^2),
+        l_time)
 }
 
 # simulate the size for testing
 type_2 <- function(seed = 2021087, k, n, m, dev, r, L = 1000, ...) {
     sim.success <- 0
     sim.stats <- c()
+    sim.sigma2 <- c()
+    l_time <- list()
     times <- seq(-1, 1, length.out = 80) # all possible time points
     while (sim.success < k) {
         set.seed(seed + sim.success)
         data <- gen.data(deviation = dev, nsubj = n, r = r, M = m)
-        face.b <- try(bootstrap.face(data, nbs = L, argvals.new = times, ...),
-                    silent = T)
-        if ("try-error" %in% class(face.b)) {# issue with null fit
+        l_time[[sim.success + 1]] <- try(system.time(
+            face.b <- bootstrap.face(data, nbs = L, argvals.new = times, ...))[1:3],
+            silent = T)
+        if ("try-error" %in% class(l_time[[sim.success + 1]])) {# issue with null fit
             seed <- seed + 1
             next
         }
         sim.success <- sim.success + 1
         sim.stats <- c(sim.stats, face.b$p)
+        sim.sigma2 <- c(sim.sigma2, face.b$sigma2)
     }
-    c(mean(sim.stats <= 0.05))
+    list(mean(sim.stats <= 0.05),
+        sum((sim.sigma2 - 1)^2),
+        l_time)
 }
 
 # simulate the size and runtime for different options
