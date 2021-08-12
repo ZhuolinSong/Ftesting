@@ -39,7 +39,7 @@ library(splines)
 
 times <- seq(-1, 1, length.out = 80) # all possible time points
 # Example 1. Simulated data from null model, with 100 subjects and 80 obs/subj
-data <- gen.data(deviation = "trigonometric", nsubj = 100, r = 0, M = 4)
+data <- gen.data(deviation = "trigonometric", nsubj = 100, r = 0, M = 5, mixed_m = T)
 
 set.seed(2021087)
 # Implement the tests
@@ -50,11 +50,11 @@ try(
 , silent = T)
 face.b$p
 
-v_rand <- c()
-for(i in 1:10) {
-    v_rand <- c(v_rand, rnorm(1))
-}
-v_rand
+# v_rand <- c()
+# for(i in 1:10) {
+#     v_rand <- c(v_rand, rnorm(1))
+# }
+# v_rand
 # Comparison methods
 system.time(fit.b <- bootstrap.test(data, times, nbs = 10)) # pilot bootstrap test with 10 resamples
 # fit.b<-bootstrap.test(data,times,nbs=1000) # full bootstrap test with 1000 resamples

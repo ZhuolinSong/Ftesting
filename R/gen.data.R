@@ -21,7 +21,7 @@ gen.data <- function(deviation = "quadratic",
                      nsubj = 100,
                      r = 0,
                      M = 80,
-                     error.var = 1) {
+                     error.var = 1, mixed_m = T) {
   argvals <- seq(-1, 1, length.out = 80) # possible time pts
   data <- NULL
   error.sd <- sqrt(error.var)
@@ -42,6 +42,12 @@ gen.data <- function(deviation = "quadratic",
     y <- mu + c(t.mat %*% t(b.mat) + sqrt(r) * psi %*% lambda.mat %*% matrix(rnorm(2 * nsubj), nrow = 2)) + rnorm(nsubj * length(argvals), sd = error.sd)
   }
   full.data <- data.frame(y = y, argvals = rep(argvals, nsubj), subj = rep(c(1:nsubj), each = length(argvals)))
-  obs.ind <- sapply(c(1:nsubj), function(x) sort(sample(c(1:length(argvals)), M, replace = F)) + (x - 1) * length(argvals))
-  return(full.data[c(obs.ind), ])
+  # vector of M_i
+  if (mixed_m && M <= 78) {
+    v_mi <- sample(rep((M - 2):(M + 2), ceiling(nsubj / 5)))
+  } else {
+    v_mi <- rep(M, nsubj)
+  }
+  obs.ind <- lapply(c(1:nsubj), function(x) sort(sample(c(1:length(argvals)), v_mi[x], replace = F)) + (x - 1) * length(argvals))
+  return(full.data[unlist(obs.ind), ])
 }
