@@ -36,9 +36,9 @@
 #'
 #' @references modified from face.sparse.inner from face package
 #' and bootstrap.test.R written by Stephanie
-bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL, fast.tn=T,
-                          semi.iter = F,
-                          tune.bs=F, center = TRUE,
+bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL, fast.tn = T,
+                          semi.iter = T,
+                          tune.bs=F, center = TRUE, center.bs = F,
                            knots = 7, knots.option = "equally-spaced",
                            p = 3, m = 2, lambda = NULL, lambda_mean = NULL,
                            search.length = 14,
@@ -47,6 +47,9 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL, fast.tn=T,
   #########################
   #### step 0: read in data
   #########################
+  if (!fast.tn && semi.iter) {
+    warning("semi.iter won't truncate the estimated covariance matrix!")
+  }
   check.data(data)
   nb <- knots + p
 
@@ -298,36 +301,37 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL, fast.tn=T,
 
   bs.stats <- c()
   bs.success <- 0
+  if (center.bs) {
+      mean.bs <- fit_mean$fitted.values
+  } else {
+      mean.bs <- 0
+  }
 
   if (semi.iter) {
     C0.bs <- matrix(NA, nrow = length(C), ncol = 0)
     C.bs  <- C0.bs
-    y.bs <- resample(data, 0, Rbar0.fit$coef.null, sigsq, L = nbs)
+    y.bs <- resample(data, mean.bs, Rbar0.fit$coef.null, sigsq, L = nbs)
 
     while (bs.success < nbs) { #(0.15s)
 
       ###### a. generate Y_ij^(l) (0.01s)## fit_mean$fitted.values
       s_iterator <- bs.success + 1
       if (ncol(y.bs) < s_iterator) {
-        y.bs <- cbind(y.bs, resample(data, 0, Rbar0.fit$coef.null, sigsq, L = 5))
+        y.bs <- cbind(y.bs, resample(data, mean.bs, Rbar0.fit$coef.null, sigsq, L = 5))
       }
       y <- y.bs[, s_iterator]
 
       ###### b. center Y_ij^(l) (0.01s)
       r <- y
-      # if (center) {
-      #   #fit_mean.bs <- pspline(this.bs, argvals.new = tnew, knots = knots.initial, lambda = lambda_mean)
-      #   fit_mean.bs <- mgcv::gam(as.vector(y) ~ s(t, k = nb))
-      #   r <- y - fit_mean.bs$fitted.values
-      # }
-      # data.demean.bs <- data.frame(
-      #   "argvals" = t,
-      #   "subj" = subj, "y" = as.vector(r)
-      # )
+      if (center && center.bs) {
+        #fit_mean.bs <- pspline(this.bs, argvals.new = tnew, knots = knots.initial, lambda = lambda_mean)
+        fit_mean.bs <- mgcv::gam(as.vector(y) ~ s(t, k = nb))
+        r <- y - fit_mean.bs$fitted.values
+      }
       data.demean.bs <- data.frame(
-         "argvals" = t,
-         "subj" = subj, "y" = as.vector(y)
-       )
+        "argvals" = t,
+        "subj" = subj, "y" = as.vector(r)
+      )
 
       ###### c. Initialize C0^(l) (0.08s)
       fit.null.bs <- fitNull(data.demean.bs) # null fit
@@ -355,12 +359,11 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL, fast.tn=T,
     while (bs.success < nbs) { #(0.25s)
 
       ###### a. generate Y_ij^(l) (0.05s)
-      y <- c(resample(data, fit_mean$fitted.values,
-                          Rbar0.fit$coef.null, sigsq))
+      y <- c(resample(data, mean.bs, Rbar0.fit$coef.null, sigsq))
 
       ###### b. center Y_ij^(l) (0.05s)
       r <- y
-      if (center) {
+      if (center && center.bs) {
         #fit_mean.bs <- pspline(this.bs, argvals.new = tnew, knots = knots.initial, lambda = lambda_mean)
         fit_mean.bs <- mgcv::gam(as.vector(y) ~ s(t, k = nb))
         r <- y - fit_mean.bs$fitted.values

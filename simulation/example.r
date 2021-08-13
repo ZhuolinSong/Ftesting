@@ -43,11 +43,8 @@ data <- gen.data(deviation = "trigonometric", nsubj = 100, r = 0, M = 5, mixed_m
 
 set.seed(2021087)
 # Implement the tests
-try(
-    system.time(face.b <- bootstrap.face(data, nbs = 10,
-                                        argvals.new = times,
-                                        semi.iter = F, fast.tn = T))
-, silent = T)
+system.time(face.b <- bootstrap.face(data, nbs = 10, argvals.new = times,
+                    semi.iter = T, fast.tn = T))
 face.b$p
 
 # v_rand <- c()
