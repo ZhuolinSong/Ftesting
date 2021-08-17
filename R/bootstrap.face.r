@@ -37,7 +37,7 @@
 #' @references modified from face.sparse.inner from face package
 #' and bootstrap.test.R written by Stephanie
 bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
-                          fast.tn = T, semi.iter = T, center.bs = F,
+                          fast.tn = T, semi.iter = F, center.bs = F,
                           tune.bs=F, center = TRUE,
                            knots = 7, knots.option = "equally-spaced",
                            p = 3, m = 2, lambda = NULL, lambda_mean = NULL,

@@ -11,5 +11,5 @@ s_m <- 7
 
 
 sim_type1_5007 <- type_1(seed, s_k, s_n, s_m,
-                fast.tn = T, semi.iter = T, center.bs = F)
+                fast.tn = T, semi.iter = F, center.bs = F)
 save(sim_type1_5007, file = "sim_type1_5007.RData")
