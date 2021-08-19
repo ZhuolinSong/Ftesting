@@ -41,11 +41,16 @@ times <- seq(-1, 1, length.out = 80) # all possible time points
 # Example 1. Simulated data from null model, with 100 subjects and 80 obs/subj
 data <- gen.data(deviation = "trigonometric", nsubj = 100, r = 0, M = 5, mixed_m = T)
 
-set.seed(2021087)
+m_cov_truth <- 1 + tcrossprod(times) - 0.5 * times - 0.5 * matrix(rep(times, 80), 80, byrow = T)
+set.seed(2021083)
 # Implement the tests
 system.time(face.b <- bootstrap.face(data, nbs = 10, argvals.new = times,
-                    semi.iter = T, fast.tn = T))
+                    semi.iter = F, fast.tn = F, center.bs = F, lambda = NULL))
+
 face.b$p
+norm(face.b$C.null - m_cov_truth, type = "F")
+norm(face.b$C.alt - m_cov_truth, type = "F")
+
 
 # v_rand <- c()
 # for(i in 1:10) {

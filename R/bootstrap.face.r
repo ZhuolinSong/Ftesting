@@ -249,15 +249,17 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
       warning("error variance cannot be non-positive, reset to 1e-6!")
       sigma2 <- 0.000001
     }
-    # make sure Theta positive definite(2 eigens)
-    Eigen <- eigen(Theta, symmetric = TRUE)
-    Eigen$values[Eigen$values < 0] <- 0
-    npc <- sum(Eigen$values > 0) # which.max(cumsum(Eigen$values)/sum(Eigen$values)>pve)[1]
-    if (npc > 1) {
-      Theta <- matrix.multiply(Eigen$vectors[, 1:npc], Eigen$values[1:npc]) %*% t(Eigen$vectors[, 1:npc])
-    }
-    if (npc == 1) {
-      Theta <- Eigen$values[1] * suppressMessages(kronecker(Eigen$vectors[, 1], t(Eigen$vectors[, 1])))
+    if (!fast.tn) {
+      # make sure Theta positive definite(2 eigens)
+      Eigen <- eigen(Theta, symmetric = TRUE)
+      Eigen$values[Eigen$values < 0] <- 0
+      npc <- sum(Eigen$values > 0) # which.max(cumsum(Eigen$values)/sum(Eigen$values)>pve)[1]
+      if (npc > 1) {
+        Theta <- matrix.multiply(Eigen$vectors[, 1:npc], Eigen$values[1:npc]) %*% t(Eigen$vectors[, 1:npc])
+      }
+      if (npc == 1) {
+        Theta <- Eigen$values[1] * suppressMessages(kronecker(Eigen$vectors[, 1], t(Eigen$vectors[, 1])))
+      }
     }
     #Eigen <- eigen(Theta, symmetric = TRUE)
     list(C = as.matrix(tcrossprod(Bnew %*% Matrix(Theta), Bnew)),
