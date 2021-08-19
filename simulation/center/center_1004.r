@@ -8,6 +8,6 @@ s_n <- 100
 s_m <- 4
 
 
-sim_type1_1004 <- type_1(seed, s_k, s_n, s_m, L = 1000,
+center_1004 <- type_1(seed, s_k, s_n, s_m, L = 1000,
                 fast.tn = T, semi.iter = F, center.bs = T)
-save(sim_type1_1004, file = "sim_type1_1004.RData")
+save(center_1004, file = "center_1004.RData")
