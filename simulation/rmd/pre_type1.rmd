@@ -37,8 +37,33 @@ m_sigma2_mse[3, ] <- sim_type1_1006[[2]]
 m_time[3, ] <- rowMeans(matrix(unlist(sim_type1_1006[[3]]), nrow = 3))
 ```
 
-```{r, summary}
+```{r, summary default}
 m_size
 m_sigma2_mse
+m_time
+```
+
+```{r}
+load("center_1007.RData")  # simulation/rmd/
+
+m_size <- matrix(NA, nrow = 2, ncol = 2)
+m_sigma2_mse <- matrix(NA, nrow = 2, ncol = 1)
+m_c0_mse <- matrix(NA, nrow = 2, ncol = 1)
+m_calt_mse <- matrix(NA, nrow = 2, ncol = 1)
+m_time <- matrix(NA, nrow = 2, ncol = 3)
+```
+```{r, center1007}
+m_size[2, ] <- center_1007[[1]]
+m_sigma2_mse[2, ] <- center_1007[[2]]
+m_c0_mse[2, ] <- center_1007[[3]]
+m_calt_mse[2, ] <- center_1007[[4]]
+m_time[2, ] <- rowMeans(matrix(unlist(center_1007[[5]]), nrow = 3))
+```
+
+```{r, summary center}
+m_size
+m_sigma2_mse
+m_c0_mse
+m_calt_mse
 m_time
 ```

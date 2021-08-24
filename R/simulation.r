@@ -27,8 +27,11 @@ type_1 <- function(seed = 2021087, k, n, m, L = 1000, ...) {
     }
 
     list(c(mean(sim.stats <= 0.05), mean(sim.stats <= 0.1)),
-        mean((sim.sigma2 - 1)^2), mean(sim.c0), mean(sim.calt),
-        l_time)
+        mean((sim.sigma2 - 1)^2),
+        mean(sim.c0),
+        mean(sim.calt),
+        rowMeans(matrix(unlist(l_time), nrow = 3)),
+        c(seed, sim.success))
 }
 
 # simulate the size for testing

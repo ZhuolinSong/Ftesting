@@ -197,6 +197,38 @@ m_time[3, ] &lt;- rowMeans(matrix(unlist(sim_type1_1006[[3]]), nrow = 3))</code>
 ## [2,] 104.9792 0.0222816 105.00211
 ## [3,]  98.8964 0.0232044  98.92057
 ## [4,]       NA        NA        NA</code></pre>
+<pre class="r"><code>load(&quot;center_1007.RData&quot;)  # simulation/rmd/
+
+m_size &lt;- matrix(NA, nrow = 2, ncol = 2)
+m_sigma2_mse &lt;- matrix(NA, nrow = 2, ncol = 1)
+m_c0_mse &lt;- matrix(NA, nrow = 2, ncol = 1)
+m_calt_mse &lt;- matrix(NA, nrow = 2, ncol = 1)
+m_time &lt;- matrix(NA, nrow = 2, ncol = 3)</code></pre>
+<pre class="r"><code>m_size[2, ] &lt;- center_1007[[1]]
+m_sigma2_mse[2, ] &lt;- center_1007[[2]]
+m_c0_mse[2, ] &lt;- center_1007[[3]]
+m_calt_mse[2, ] &lt;- center_1007[[4]]
+m_time[2, ] &lt;- rowMeans(matrix(unlist(center_1007[[5]]), nrow = 3))</code></pre>
+<pre class="r"><code>m_size</code></pre>
+<pre><code>##        [,1]   [,2]
+## [1,]     NA     NA
+## [2,] 0.0516 0.1154</code></pre>
+<pre class="r"><code>m_sigma2_mse</code></pre>
+<pre><code>##           [,1]
+## [1,]        NA
+## [2,] 0.1524507</code></pre>
+<pre class="r"><code>m_c0_mse</code></pre>
+<pre><code>##          [,1]
+## [1,]       NA
+## [2,] 27.52322</code></pre>
+<pre class="r"><code>m_calt_mse</code></pre>
+<pre><code>##          [,1]
+## [1,]       NA
+## [2,] 29.93637</code></pre>
+<pre class="r"><code>m_time</code></pre>
+<pre><code>##          [,1]      [,2]    [,3]
+## [1,]       NA        NA      NA
+## [2,] 95.45317 0.0245336 95.4812</code></pre>
 
 
 
