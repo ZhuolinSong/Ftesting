@@ -3,7 +3,7 @@ library(parallel)
 devtools::load_all()
 RNGkind("L'Ecuyer-CMRG")
 
-seed <- 999983
+s_seed <- 999983
 s_k <- 5000
 s_n <- 100
 s_m <- 7
