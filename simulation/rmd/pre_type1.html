@@ -167,18 +167,6 @@ pre code {
 </div>
 
 
-<pre class="r"><code># fast.tn = T, semi.iter = T
-m_size[1, ] &lt;- sim_type1_1004[[1]]
-m_sigma2_mse[1, ] &lt;- sim_type1_1004[[2]]
-m_time[1, ] &lt;- rowMeans(matrix(unlist(sim_type1_1004[[3]]), nrow = 3))</code></pre>
-<pre class="r"><code># fast.tn = T, semi.iter = F
-m_size[2, ] &lt;- sim_type1_1005[[1]]
-m_sigma2_mse[2, ] &lt;- sim_type1_1005[[2]]
-m_time[2, ] &lt;- rowMeans(matrix(unlist(sim_type1_1005[[3]]), nrow = 3))</code></pre>
-<pre class="r"><code># fast.tn = T, semi.iter = F
-m_size[3, ] &lt;- sim_type1_1006[[1]]
-m_sigma2_mse[3, ] &lt;- sim_type1_1006[[2]]
-m_time[3, ] &lt;- rowMeans(matrix(unlist(sim_type1_1006[[3]]), nrow = 3))</code></pre>
 <pre class="r"><code>m_size</code></pre>
 <pre><code>##        [,1]   [,2]
 ## [1,] 0.0332 0.0876
@@ -197,18 +185,6 @@ m_time[3, ] &lt;- rowMeans(matrix(unlist(sim_type1_1006[[3]]), nrow = 3))</code>
 ## [2,] 104.9792 0.0222816 105.00211
 ## [3,]  98.8964 0.0232044  98.92057
 ## [4,]       NA        NA        NA</code></pre>
-<pre class="r"><code>load(&quot;center_1007.RData&quot;)  # simulation/rmd/
-
-m_size &lt;- matrix(NA, nrow = 2, ncol = 2)
-m_sigma2_mse &lt;- matrix(NA, nrow = 2, ncol = 1)
-m_c0_mse &lt;- matrix(NA, nrow = 2, ncol = 1)
-m_calt_mse &lt;- matrix(NA, nrow = 2, ncol = 1)
-m_time &lt;- matrix(NA, nrow = 2, ncol = 3)</code></pre>
-<pre class="r"><code>m_size[2, ] &lt;- center_1007[[1]]
-m_sigma2_mse[2, ] &lt;- center_1007[[2]]
-m_c0_mse[2, ] &lt;- center_1007[[3]]
-m_calt_mse[2, ] &lt;- center_1007[[4]]
-m_time[2, ] &lt;- rowMeans(matrix(unlist(center_1007[[5]]), nrow = 3))</code></pre>
 <pre class="r"><code>m_size</code></pre>
 <pre><code>##        [,1]   [,2]
 ## [1,]     NA     NA

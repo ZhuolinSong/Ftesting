@@ -16,21 +16,21 @@ m_sigma2_mse <- matrix(NA, nrow = 4, ncol = 1)
 m_time <- matrix(NA, nrow = 4, ncol = 3)
 ```
 
-```{r, 1004}
+```{r, 1004, include=F}
 # fast.tn = T, semi.iter = T
 m_size[1, ] <- sim_type1_1004[[1]]
 m_sigma2_mse[1, ] <- sim_type1_1004[[2]]
 m_time[1, ] <- rowMeans(matrix(unlist(sim_type1_1004[[3]]), nrow = 3))
 ```
 
-```{r, 1005}
+```{r, 1005, include=F}
 # fast.tn = T, semi.iter = F
 m_size[2, ] <- sim_type1_1005[[1]]
 m_sigma2_mse[2, ] <- sim_type1_1005[[2]]
 m_time[2, ] <- rowMeans(matrix(unlist(sim_type1_1005[[3]]), nrow = 3))
 ```
 
-```{r, 1006}
+```{r, 1006, include=F}
 # fast.tn = T, semi.iter = F
 m_size[3, ] <- sim_type1_1006[[1]]
 m_sigma2_mse[3, ] <- sim_type1_1006[[2]]
@@ -43,7 +43,7 @@ m_sigma2_mse
 m_time
 ```
 
-```{r}
+```{r, include=F}
 load("center_1007.RData")  # simulation/rmd/
 
 m_size <- matrix(NA, nrow = 2, ncol = 2)
@@ -52,7 +52,7 @@ m_c0_mse <- matrix(NA, nrow = 2, ncol = 1)
 m_calt_mse <- matrix(NA, nrow = 2, ncol = 1)
 m_time <- matrix(NA, nrow = 2, ncol = 3)
 ```
-```{r, center1007}
+```{r, center1007, include=F}
 m_size[2, ] <- center_1007[[1]]
 m_sigma2_mse[2, ] <- center_1007[[2]]
 m_c0_mse[2, ] <- center_1007[[3]]
