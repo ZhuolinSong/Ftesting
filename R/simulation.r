@@ -1,5 +1,5 @@
 # simulate the size for testing
-type_1 <- function(seed = 2021087, k, n, m, L = 1000, ...) {
+type_1 <- function(seed = 2021087, k, n, m, L = 1000, mixed = T, ...) {
     sim.success <- 0
     sim.stats <- c()
     sim.sigma2 <- c()
@@ -11,7 +11,7 @@ type_1 <- function(seed = 2021087, k, n, m, L = 1000, ...) {
 
     while (sim.success < k) {
         set.seed(seed + sim.success)
-        data <- gen.data(deviation = "trigonometric", nsubj = n, r = 0, M = m)
+        data <- gen.data(nsubj = n, r = 0, M = m, mixed_m = mixed)
         l_time[[sim.success + 1]] <- try(system.time(
             face.b <- bootstrap.face(data, nbs = L, argvals.new = times, ...))[1:3],
             silent = T)
@@ -35,7 +35,7 @@ type_1 <- function(seed = 2021087, k, n, m, L = 1000, ...) {
 }
 
 # simulate the size for testing
-type_2 <- function(seed = 2021087, k, n, m, dev, r, L = 1000, ...) {
+type_2 <- function(seed = 2021087, k, n, m, dev, r, L = 1000, mixed = T, ...) {
     sim.success <- 0
     sim.stats <- c()
     sim.sigma2 <- c()
@@ -43,7 +43,7 @@ type_2 <- function(seed = 2021087, k, n, m, dev, r, L = 1000, ...) {
     times <- seq(-1, 1, length.out = 80) # all possible time points
     while (sim.success < k) {
         set.seed(seed + sim.success)
-        data <- gen.data(deviation = dev, nsubj = n, r = r, M = m)
+        data <- gen.data(deviation = dev, nsubj = n, r = r, M = m, mixed_m = mixed)
         l_time[[sim.success + 1]] <- try(system.time(
             face.b <- bootstrap.face(data, nbs = L, argvals.new = times, ...))[1:3],
             silent = T)

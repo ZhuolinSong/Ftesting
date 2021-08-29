@@ -44,15 +44,23 @@ m_time
 ```
 
 ```{r, include=F}
-load("center_1007.RData")  # simulation/rmd/
-
 m_size <- matrix(NA, nrow = 2, ncol = 2)
 m_sigma2_mse <- matrix(NA, nrow = 2, ncol = 1)
 m_c0_mse <- matrix(NA, nrow = 2, ncol = 1)
 m_calt_mse <- matrix(NA, nrow = 2, ncol = 1)
 m_time <- matrix(NA, nrow = 2, ncol = 3)
 ```
+```{r, center1004, include=F}
+load("center_1004.RData")  # simulation/rmd/
+m_size[1, ] <- center_1004[[1]]
+m_sigma2_mse[1, ] <- center_1004[[2]]
+m_c0_mse[1, ] <- center_1004[[3]]
+m_calt_mse[1, ] <- center_1004[[4]]
+m_time[1, ] <- rowMeans(matrix(unlist(center_1004[[5]]), nrow = 3))
+```
+
 ```{r, center1007, include=F}
+load("center_1007.RData")  # simulation/rmd/
 m_size[2, ] <- center_1007[[1]]
 m_sigma2_mse[2, ] <- center_1007[[2]]
 m_c0_mse[2, ] <- center_1007[[3]]
