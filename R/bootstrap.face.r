@@ -43,7 +43,7 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
                            p = 3, m = 2, lambda = NULL, lambda_mean = NULL,
                            search.length = 14,
                            lower = -3, upper = 10,
-                           pve = 0.99) {
+                           pve = 0.99, off_diag = F) {
   #########################
   #### step 0: read in data
   #########################
@@ -69,17 +69,15 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
   ###### a. Initialize C, X, Q
   r <- y
   if (center) {
-    #fit_mean <- pspline(data, argvals.new = tnew, knots = knots.initial, lambda = lambda_mean)
-    fit_mean <- gam(as.vector(y) ~ s(t, k = nb))
+    fit_mean <- pspline(data, argvals.new = tnew, knots = knots.initial, lambda = lambda_mean)
+    #fit_mean <- mgcv::gam(as.vector(y) ~ s(t, k = nb))
     r <- y - fit_mean$fitted.values
   }
 
   raw <- raw.construct(data.frame("argvals" = t, "subj" = subj, "y" = as.vector(r)))
   C <- raw$C  # C
   st <- raw$st
-  N <- raw$N
   N2 <- raw$N2
-  W <- raw$W
   n0 <- raw$n0
   # indicator where ti = tj
   delta <- Matrix((st[, 1] == st[, 2]) * 1) # sparse
@@ -91,7 +89,7 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
   B1 <- List$B
   B1 <- Matrix(B1)
   DtD <- List$P
-
+  ## construct design on row dimension
   B2 <- spline.des(knots = knots, x = st[, 2], ord = p + 1, outer.ok = TRUE, sparse = TRUE)$design
   c <- dim(B1)[2]
   c2 <- c * (c + 1) / 2
@@ -101,7 +99,9 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
   ### double the weight for off-diagonal
   # v_idx <- which(delta == 0)
   # B[v_idx, ] <- sqrt(2) * B[v_idx, ]
-  B <-  B * (sqrt(2) * (1 - delta) + delta)
+  if (off_diag) {
+    B <-  B * (sqrt(2) * (1 - delta) + delta)
+  }
 
   # BtWB <- matrix(0, nrow = c^2, ncol = c^2)
   # Wdelta <- c()
@@ -305,6 +305,7 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
   bs.success <- 0
   if (center.bs) {
       mean.bs <- fit_mean$fitted.values
+      this.bs <- data
   } else {
       mean.bs <- 0
   }
@@ -326,8 +327,9 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
       ###### b. center Y_ij^(l) (0.01s)
       r <- y
       if (center && center.bs) {
-        #fit_mean.bs <- pspline(this.bs, argvals.new = tnew, knots = knots.initial, lambda = lambda_mean)
-        fit_mean.bs <- mgcv::gam(as.vector(y) ~ s(t, k = nb))
+        this.bs$y <- r
+        fit_mean.bs <- pspline(this.bs, argvals.new = tnew, knots = knots.initial, lambda = lambda_mean)
+        # fit_mean.bs <- mgcv::gam(as.vector(y) ~ s(t, k = nb))
         r <- y - fit_mean.bs$fitted.values
       }
       data.demean.bs <- data.frame(
@@ -366,8 +368,9 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
       ###### b. center Y_ij^(l) (0.05s)
       r <- y
       if (center && center.bs) {
-        #fit_mean.bs <- pspline(this.bs, argvals.new = tnew, knots = knots.initial, lambda = lambda_mean)
-        fit_mean.bs <- mgcv::gam(as.vector(y) ~ s(t, k = nb))
+        this.bs$y <- r
+        fit_mean.bs <- pspline(this.bs, argvals.new = tnew, knots = knots.initial, lambda = lambda_mean)
+        # fit_mean.bs <- mgcv::gam(as.vector(y) ~ s(t, k = nb))
         r <- y - fit_mean.bs$fitted.values
       }
       data.demean.bs <- data.frame(

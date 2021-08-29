@@ -3,7 +3,7 @@ type_1 <- function(seed = 2021087, k, n, m, L = 1000, mixed = T, ...) {
     sim.success <- 0
     sim.stats <- c()
     sim.sigma2 <- c()
-    sim.c0 <- c() 
+    sim.c0 <- c()
     sim.calt <- c()
     l_time <- list()
     times <- seq(-1, 1, length.out = 80) # all possible time points
