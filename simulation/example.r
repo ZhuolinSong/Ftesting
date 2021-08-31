@@ -36,7 +36,7 @@ library(Matrix)
 library(Bolstad)
 library(splines)
 
-type_1(seed = 2021087, k = 1, n = 100, m = 5, L = 1,
+type_1(seed = 2021087, k = 5, n = 100, m = 5, L = 1,
     mixed = T, fast.tn = T, semi.iter = F, center.bs = T)
 
 times <- seq(-1, 1, length.out = 80) # all possible time points
