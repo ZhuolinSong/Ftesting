@@ -37,7 +37,7 @@ library(Bolstad)
 library(splines)
 
 type_1(seed = 2021087, k = 5, n = 100, m = 5, L = 1,
-    mixed = T, fast.tn = T, semi.iter = F, center.bs = T)
+    mixed = T, fast.tn = T, semi.iter = F, center.bs = T, off_diag = F)
 
 times <- seq(-1, 1, length.out = 80) # all possible time points
 # Example 1. Simulated data from null model, with 100 subjects and 80 obs/subj

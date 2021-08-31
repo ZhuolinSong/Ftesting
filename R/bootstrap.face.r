@@ -182,9 +182,13 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
   Bnew2 <- spline.des(knots = knots, x = stnew[, 2], ord = p + 1, outer.ok = TRUE, sparse = TRUE)$design
   Bstar <- Matrix(t(KhatriRao(Matrix(t(Bnew2)), Matrix(t(Bnew1)))))
 
-  delta_star <- which(stnew[, 1] != stnew[, 2])
+
   Xstar <- Bstar %*% G
-  Xstar[delta_star, ] <- sqrt(2) * Xstar[delta_star, ]
+  if (off_diag) {
+    delta_star <- which(stnew[, 1] != stnew[, 2])
+    Xstar[delta_star, ] <- sqrt(2) * Xstar[delta_star, ]
+  }
+  
   Bnew <- spline.des(knots = knots, x = tnew, ord = p + 1, outer.ok = TRUE, sparse = TRUE)$design
 
   ###### c. Null estimate Ctilde0, f0 (2 eigens)
