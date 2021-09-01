@@ -36,8 +36,13 @@ library(Matrix)
 library(Bolstad)
 library(splines)
 
+<<<<<<< HEAD
 type_1(seed = 2021087, k = 7, n = 100, m = 5, L = 1,
     mixed = T, fast.tn = T, semi.iter = F, center.bs = T)
+=======
+type_1(seed = 2021087, k = 5, n = 100, m = 5, L = 1,
+    mixed = T, fast.tn = T, semi.iter = F, center.bs = T, off_diag = F)
+>>>>>>> 5949c0a13b8cee82ba2a1698b3d4029dd8b5e298
 
 times <- seq(-1, 1, length.out = 80) # all possible time points
 # Example 1. Simulated data from null model, with 100 subjects and 80 obs/subj
