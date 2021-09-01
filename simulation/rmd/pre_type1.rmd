@@ -85,7 +85,14 @@ m_c0_mse <- matrix(0, nrow = 2, ncol = 1)
 m_calt_mse <- matrix(0, nrow = 2, ncol = 1)
 m_time <- matrix(0, nrow = 2, ncol = 3)
 ```
-
+```{r, sim_1004r, include=F}
+load("sim_type1_1004r.RData") # simulation/rmd/
+m_size[1, ] <- (sim_type1_1004[[1]][[1]] + sim_type1_1004[[2]][[1]]) / 2
+m_sigma2_mse[1, ] <- (sim_type1_1004[[1]][[2]] + sim_type1_1004[[2]][[2]]) / 2
+m_c0_mse[1, ] <- (sim_type1_1004[[1]][[3]] + sim_type1_1004[[2]][[3]]) / 2
+m_calt_mse[1, ] <- (sim_type1_1004[[1]][[4]] + sim_type1_1004[[2]][[4]]) / 2
+m_time[1, ] <- (sim_type1_1004[[1]][[5]] + sim_type1_1004[[2]][[5]]) / 2
+```
 ```{r, sim_1007r, include=F}
 load("sim_type1_1007r.RData") # simulation/rmd/
 m_size[2, ] <- (sim_type1_1007[[1]][[1]] + sim_type1_1007[[2]][[1]]) / 2
@@ -111,6 +118,35 @@ m_c0_mse <- matrix(0, nrow = 2, ncol = 1)
 m_calt_mse <- matrix(0, nrow = 2, ncol = 1)
 m_time <- matrix(0, nrow = 2, ncol = 3)
 ```
+
+```{r, sim_5004r.bs, eval = F, include = F}
+load("simulation/rmd/sim_type1_5004_1r.RData") # simulation/rmd/
+load("simulation/rmd/sim_type1_5004_2r.RData")
+load("simulation/rmd/sim_type1_5004_3r.RData")
+load("simulation/rmd/sim_type1_5004_4r.RData")
+load("simulation/rmd/sim_type1_5004_5r.RData")
+sim_type1_5004 <- c(sim_type1_5004_1, sim_type1_5004_2, sim_type1_5004_3, sim_type1_5004_4, sim_type1_5004_5)
+for (i in seq_along(sim_type1_5004)) {
+    m_size[1, ] <- m_size[1, ] + sim_type1_5004[[i]][[1]]
+    m_sigma2_mse[1, ] <- m_sigma2_mse[1, ] + sim_type1_5004[[i]][[2]]
+    m_c0_mse[1, ] <- m_c0_mse[1, ] + sim_type1_5004[[i]][[3]]
+    m_calt_mse[1, ] <- m_calt_mse[1, ] + sim_type1_5004[[i]][[4]]
+    m_time[1, ] <- m_time[1, ] + sim_type1_5004[[i]][[5]]
+}
+seed.bs <- sapply(sim_type1_5004, seed <- function(l_list) {
+    l_list[[6]]
+})
+sim_type1_5004r <- list(
+    m_size[1, ],
+    m_sigma2_mse[1, ],
+    m_c0_mse[1, ],
+    m_calt_mse[1, ],
+    m_time[1, ],
+    seed.bs
+)
+save(sim_type1_5004r, file = "sim_type1_5004r.RData")
+```
+
 ```{r, sim_5007r.bs, eval = F, include = F}
 load("simulation/rmd/sim_type1_5007_1r.RData") # simulation/rmd/
 load("simulation/rmd/sim_type1_5007_2r.RData")
@@ -139,6 +175,14 @@ sim_type1_5007r <- list(
 save(sim_type1_5007r, file = "sim_type1_5007r.RData")
 ```
 
+```{r, sim_5004r, include = F}
+load("sim_type1_5004r.RData") # simulation/rmd/
+m_size[1, ] <- sim_type1_5004r[[1]] / 10
+m_sigma2_mse[1, ] <- sim_type1_5004r[[2]] / 10
+m_c0_mse[1, ] <- sim_type1_5004r[[3]] / 10
+m_calt_mse[1, ] <- sim_type1_5004r[[4]] / 10
+m_time[1, ] <- sim_type1_5004r[[5]] / 10
+```
 ```{r, sim_5007r, include = F}
 load("sim_type1_5007r.RData") # simulation/rmd/
 m_size[2, ] <- sim_type1_5007r[[1]] / 10
@@ -150,6 +194,33 @@ m_time[2, ] <- sim_type1_5007r[[5]] / 10
 
 ```{r, summary sim_500r}
 print("summary for 500 random")
+m_size
+m_sigma2_mse
+m_c0_mse
+m_calt_mse
+m_time
+```
+
+
+```{r, include=F}
+m_size <- matrix(0, nrow = 2, ncol = 2)
+m_sigma2_mse <- matrix(0, nrow = 2, ncol = 1)
+m_c0_mse <- matrix(0, nrow = 2, ncol = 1)
+m_calt_mse <- matrix(0, nrow = 2, ncol = 1)
+m_time <- matrix(0, nrow = 2, ncol = 3)
+```
+
+```{r, center_1007r, include=F}
+load("center_1007r.RData") # simulation/rmd/
+m_size[2, ] <- (center_1007[[1]][[1]] + center_1007[[2]][[1]]) / 2
+m_sigma2_mse[2, ] <- (center_1007[[1]][[2]] + center_1007[[2]][[2]]) / 2
+m_c0_mse[2, ] <- (center_1007[[1]][[3]] + center_1007[[2]][[3]]) / 2
+m_calt_mse[2, ] <- (center_1007[[1]][[4]] + center_1007[[2]][[4]]) / 2
+m_time[2, ] <- (center_1007[[1]][[5]] + center_1007[[2]][[5]]) / 2
+```
+
+```{r, summary center_100r}
+print("summary for 100 random center")
 m_size
 m_sigma2_mse
 m_c0_mse
