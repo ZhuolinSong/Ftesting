@@ -36,23 +36,18 @@ library(Matrix)
 library(Bolstad)
 library(splines)
 
-<<<<<<< HEAD
 type_1(seed = 2021087, k = 7, n = 100, m = 5, L = 1,
-    mixed = T, fast.tn = T, semi.iter = F, center.bs = T)
-=======
-type_1(seed = 2021087, k = 5, n = 100, m = 5, L = 1,
-    mixed = T, fast.tn = T, semi.iter = F, center.bs = T, off_diag = F)
->>>>>>> 5949c0a13b8cee82ba2a1698b3d4029dd8b5e298
+    mixed = T, fast.tn = F, semi.iter = F, center.bs = T, off_diag = F)
 
 times <- seq(-1, 1, length.out = 80) # all possible time points
 # Example 1. Simulated data from null model, with 100 subjects and 80 obs/subj
-data <- gen.data(deviation = "trigonometric", nsubj = 100, r = 0, M = 5, mixed_m = T)
+data <- gen.data(deviation = "trigonometric", nsubj = 100, r = 0, M = 7, mixed_m = T)
 
 m_cov_truth <- 1 + tcrossprod(times) - 0.5 * times - 0.5 * matrix(rep(times, 80), 80, byrow = T)
 set.seed(2021083)
 # Implement the tests
-system.time(face.b <- bootstrap.face(data, nbs = 10, argvals.new = times,
-                    semi.iter = F, fast.tn = F, center.bs = F, lambda = NULL))
+system.time(face.b <- bootstrap.face(data, nbs = 100, argvals.new = times,
+                    semi.iter = F, fast.tn = F, center.bs = T, lambda = NULL))
 
 face.b$p
 norm(face.b$C.null - m_cov_truth, type = "F")

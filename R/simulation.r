@@ -40,8 +40,11 @@ type_2 <- function(seed = 2021087, k, n, m, dev, r, L = 1000, mixed = T, ...) {
     sim.success <- 0
     sim.stats <- c()
     sim.sigma2 <- c()
+    sim.c0 <- c()
+    sim.calt <- c()
     l_time <- list()
     times <- seq(-1, 1, length.out = 80) # all possible time points
+    cov_truth <- 1 + tcrossprod(times) - 0.5 * times - 0.5 * matrix(rep(times, 80), 80, byrow = T) + r * 
     while (sim.success < k) {
         set.seed(seed + sim.success)
         data <- gen.data(deviation = dev, nsubj = n, r = r, M = m, mixed_m = mixed)
@@ -55,9 +58,14 @@ type_2 <- function(seed = 2021087, k, n, m, dev, r, L = 1000, mixed = T, ...) {
         sim.success <- sim.success + 1
         sim.stats <- c(sim.stats, face.b$p)
         sim.sigma2 <- c(sim.sigma2, face.b$sigma2)
+        sim.c0 <- c(sim.c0, norm(face.b$C.null - cov_truth, type = "F"))
+        sim.calt <- c(sim.calt, norm(face.b$C.alt - cov_truth, type = "F"))
     }
     list(mean(sim.stats <= 0.05),
         mean((sim.sigma2 - 1)^2),
-        l_time,
+        mean(sim.c0),
+        mean(sim.calt),
+        rowMeans(matrix(unlist(l_time), nrow = 3)),
+        c(seed, sim.success),
         sim.stats)
 }
