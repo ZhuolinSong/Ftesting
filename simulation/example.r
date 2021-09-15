@@ -46,8 +46,8 @@ data <- gen.data(deviation = "trigonometric", nsubj = 100, r = 0, M = 7, mixed_m
 m_cov_truth <- 1 + tcrossprod(times) - 0.5 * times - 0.5 * matrix(rep(times, 80), 80, byrow = T)
 set.seed(2021083)
 # Implement the tests
-system.time(face.b <- bootstrap.face(data, nbs = 100, argvals.new = times,
-                    semi.iter = F, fast.tn = F, center.bs = T, lambda = NULL))
+system.time(face.b <- bootstrap.face(data, nbs = 1000, argvals.new = times,
+        semi.iter = F, fast.tn = F, center.bs = T, off_diag = F, gam.mgcv = F))
 
 face.b$p
 norm(face.b$C.null - m_cov_truth, type = "F")
@@ -114,3 +114,44 @@ fit.b <- bootstrap.test(data, times, nbs = 10) # pilot bootstrap test with 10 re
 # fit.b<-bootstrap.test(data,times,nbs=1000) # full bootstrap test with 1000 resamples
 fit.d <- direct.test(data, times) # direct test
 fit.m <- multivariate.test(data, times) # multivariate test (note: data must be dense)
+
+
+
+
+# CD4 count
+times <- round(seq(-1, 1, length.out = ncol(cd4)), digits = 5)
+# Clean data of subjects w/ missing obs and renumber subjs sequentially
+delete.subj <- NULL
+data <- NULL # final dataset
+value <- NULL; id <- NULL; index <- NULL; count <- NULL
+new.subj <- 1
+
+for (i in seq_len(nrow(cd4))) {
+  subj.idx <- which(!is.na(cd4[i, ]))
+  subj.value <- cd4[i, subj.idx]
+  subj.index <- times[subj.idx]
+  subj.count <- length(subj.idx)
+  if (subj.count < 1) {
+    delete.subj <- c(delete.subj, i)
+  }
+  else {
+    id <- c(id, rep(new.subj, subj.count))
+    value <- c(value, subj.value)
+    index <- c(index, subj.index)
+    count <- c(count, subj.count)
+    new.subj <- new.subj + 1
+  }
+}
+mean(count)
+min(count)
+max(count)
+
+# No log-transform stepface
+data <- data.frame(y = value, argvals = index, subj = id)
+system.time(face.b1 <- bootstrap.face(data, nbs = 1000, argvals.new = times,
+        semi.iter = F, fast.tn = F, center.bs = T, gam.mgcv = T))
+
+# log-transform stepface
+data <- data.frame(y = log(value), argvals = index, subj = id)
+system.time(face.b2 <- bootstrap.face(data, nbs = 1000, argvals.new = times,
+        semi.iter = F, fast.tn = F, center.bs = T, gam.mgcv = T))

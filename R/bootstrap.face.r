@@ -43,7 +43,7 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
                            p = 3, m = 2, lambda = NULL, lambda_mean = NULL,
                            search.length = 14,
                            lower = -3, upper = 10,
-                           pve = 0.99, off_diag = F) {
+                           pve = 0.99, off_diag = F, gam.mgcv = T) {
   #########################
   #### step 0: read in data
   #########################
@@ -69,8 +69,11 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
   ###### a. Initialize C, X, Q
   r <- y
   if (center) {
-    fit_mean <- pspline(data, argvals.new = tnew, knots = knots.initial, lambda = lambda_mean)
-    #fit_mean <- mgcv::gam(as.vector(y) ~ s(t, k = nb))
+    if (gam.mgcv) {
+      fit_mean <- mgcv::gam(as.vector(y) ~ s(t, k = nb))
+    } else {
+      fit_mean <- pspline(data, argvals.new = tnew, knots = knots.initial, lambda = lambda_mean)
+    }
     r <- y - fit_mean$fitted.values
   }
 
@@ -332,8 +335,11 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
       r <- y
       if (center && center.bs) {
         this.bs$y <- r
-        fit_mean.bs <- pspline(this.bs, argvals.new = tnew, knots = knots.initial, lambda = lambda_mean)
-        # fit_mean.bs <- mgcv::gam(as.vector(y) ~ s(t, k = nb))
+        if (gam.mgcv) {
+          fit_mean.bs <- mgcv::gam(as.vector(y) ~ s(t, k = nb))
+        } else {
+          fit_mean.bs <- pspline(this.bs, argvals.new = tnew, knots = knots.initial, lambda = lambda_mean)
+        }
         r <- y - fit_mean.bs$fitted.values
       }
       data.demean.bs <- data.frame(
@@ -373,8 +379,11 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
       r <- y
       if (center && center.bs) {
         this.bs$y <- r
-        fit_mean.bs <- pspline(this.bs, argvals.new = tnew, knots = knots.initial, lambda = lambda_mean)
-        # fit_mean.bs <- mgcv::gam(as.vector(y) ~ s(t, k = nb))
+        if (gam.mgcv) {
+          fit_mean.bs <- mgcv::gam(as.vector(y) ~ s(t, k = nb))
+        } else {
+          fit_mean.bs <- pspline(this.bs, argvals.new = tnew, knots = knots.initial, lambda = lambda_mean)
+        }
         r <- y - fit_mean.bs$fitted.values
       }
       data.demean.bs <- data.frame(
