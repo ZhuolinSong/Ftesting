@@ -187,11 +187,10 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
 
 
   Xstar <- Bstar %*% G
-  if (off_diag) {
-    delta_star <- which(stnew[, 1] != stnew[, 2])
-    Xstar[delta_star, ] <- sqrt(2) * Xstar[delta_star, ]
-  }
-  
+  delta_star <- which(stnew[, 1] != stnew[, 2])
+  Xstar[delta_star, ] <- sqrt(2) * Xstar[delta_star, ]
+
+
   Bnew <- spline.des(knots = knots, x = tnew, ord = p + 1, outer.ok = TRUE, sparse = TRUE)$design
 
   ###### c. Null estimate Ctilde0, f0 (2 eigens)
@@ -253,21 +252,21 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
     Theta <- matrix(Theta, c, c)
     sigma2 <- alpha[c2]
     if (sigma2 <= 0.000001) {
-      warning("error variance cannot be non-positive, reset to 1e-6!")
+      # warning("error variance cannot be non-positive, reset to 1e-6!")
       sigma2 <- 0.000001
     }
-    if (!fast.tn) {
-      # make sure Theta positive definite(2 eigens)
-      Eigen <- eigen(Theta, symmetric = TRUE)
-      Eigen$values[Eigen$values < 0] <- 0
-      npc <- sum(Eigen$values > 0) # which.max(cumsum(Eigen$values)/sum(Eigen$values)>pve)[1]
-      if (npc > 1) {
-        Theta <- matrix.multiply(Eigen$vectors[, 1:npc], Eigen$values[1:npc]) %*% t(Eigen$vectors[, 1:npc])
-      }
-      if (npc == 1) {
-        Theta <- Eigen$values[1] * suppressMessages(kronecker(Eigen$vectors[, 1], t(Eigen$vectors[, 1])))
-      }
-    }
+    # if (!fast.tn) {
+    #   # make sure Theta positive definite(2 eigens)
+    #   Eigen <- eigen(Theta, symmetric = TRUE)
+    #   Eigen$values[Eigen$values < 0] <- 0
+    #   npc <- sum(Eigen$values > 0) # which.max(cumsum(Eigen$values)/sum(Eigen$values)>pve)[1]
+    #   if (npc > 1) {
+    #     Theta <- matrix.multiply(Eigen$vectors[, 1:npc], Eigen$values[1:npc]) %*% t(Eigen$vectors[, 1:npc])
+    #   }
+    #   if (npc == 1) {
+    #     Theta <- Eigen$values[1] * suppressMessages(kronecker(Eigen$vectors[, 1], t(Eigen$vectors[, 1])))
+    #   }
+    # }
     #Eigen <- eigen(Theta, symmetric = TRUE)
     list(C = as.matrix(tcrossprod(Bnew %*% Matrix(Theta), Bnew)),
          sigma2 = sigma2)
@@ -354,16 +353,16 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
         next # if problem
       }
       Rbar0.fit.bs <- calc.R0(fit.null.bs, st)
-      C0.bs <- cbind(C0.bs, Rbar0.fit.bs$Rbar0)
+      # C0.bs <- cbind(C0.bs, Rbar0.fit.bs$Rbar0)
 
       ###### d. Initialize C^(l) (0.05s)
-      C.bs <- cbind(C.bs, raw.C(data.demean.bs))
+      C.bs <- cbind(C.bs, Rbar0.fit.bs$Rbar0 - raw.C(data.demean.bs))
       bs.success <- bs.success + 1
 
     }
 # ptm <- proc.time()
     # Compute delta.bs (0.17 s)
-    delta.bs <- m_est[-c2, ] %*% (C0.bs - C.bs)
+    delta.bs <- m_est[-c2, ] %*% Matrix(C.bs)
 # print(proc.time() - ptm)
     # compute bs statistics (0 s)
     bs.stats <- (Xstar %*% delta.bs) ^ 2
@@ -402,7 +401,7 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
       ###### d. Initialize C^(l) (0.05s)
       C.bs <- raw.C(data.demean.bs) #(0.05s)
 
-#ptm <- proc.time()
+
       ###### e. tunning(f, g, G) -> lambda_a^l (most inefficient 1s)
       if (tune.bs) {
         ## f, g, G(G1 here), Li (0.1s)
@@ -428,12 +427,12 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
         # recalculate estimation matrix (0.8s)
         m_est <- matrix.multiply(A0, 1 / (1 + lambda.bs * s)) %*% t(m_F)
       }
-#print(proc.time() - ptm)
+
       ###### f. calculate estimated covariance function and test statistics
       # (0.05 s)
-
+# ptm <- proc.time()
       if (fast.tn) {
-        Tn.bs <- m_est[-c2, ] %*% (C0.bs - C.bs)
+        Tn.bs <- m_est[-c2, ] %*% (C.bs - C0.bs)
         Tn.bs <- norm(Xstar %*% Tn.bs, type = "F")
       } else {
         C.alt.bs <- trun_mat(C.bs)$C
@@ -443,6 +442,7 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
 
       bs.stats <- c(bs.stats, Tn.bs) # save bs stats
       bs.success <- bs.success + 1
+# print(proc.time() - ptm)
     }
   }
 
@@ -502,3 +502,5 @@ resample <- function(data, mu, coef.null, sigsq, L = 1) {
 #             i*x
 #         })
 #     })
+
+

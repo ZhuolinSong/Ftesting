@@ -626,3 +626,92 @@ m_c0_mse
 m_calt_mse
 m_time
 ```
+
+
+```{r, include=F}
+m_size <- matrix(0, nrow = 2, ncol = 2)
+m_sigma2_mse <- matrix(0, nrow = 2, ncol = 1)
+m_c0_mse <- matrix(0, nrow = 2, ncol = 1)
+m_calt_mse <- matrix(0, nrow = 2, ncol = 1)
+m_time <- matrix(0, nrow = 2, ncol = 3)
+```
+```{r, center_5004tt, eval = F, include = F}
+load("simulation/rmd/center_5004_1t.RData") # simulation/rmd/
+load("simulation/rmd/center_5004_2t.RData")
+load("simulation/rmd/center_5004_3t.RData")
+load("simulation/rmd/center_5004_4t.RData")
+load("simulation/rmd/center_5004_5t.RData")
+center_5004 <- c(center_5004_1, center_5004_2, center_5004_3, center_5004_4, center_5004_5)
+for (i in seq_along(center_5004)) {
+    m_size[1, ] <- m_size[1, ] + center_5004[[i]][[1]]
+    m_sigma2_mse[1, ] <- m_sigma2_mse[1, ] + center_5004[[i]][[2]]
+    m_c0_mse[1, ] <- m_c0_mse[1, ] + center_5004[[i]][[3]]
+    m_calt_mse[1, ] <- m_calt_mse[1, ] + center_5004[[i]][[4]]
+    m_time[1, ] <- m_time[1, ] + center_5004[[i]][[5]]
+}
+seed.bs <- sapply(center_5004, seed <- function(l_list) {
+    l_list[[6]]
+})
+center_5004t <- list(
+    m_size[1, ],
+    m_sigma2_mse[1, ],
+    m_c0_mse[1, ],
+    m_calt_mse[1, ],
+    m_time[1, ],
+    seed.bs
+)
+save(center_5004t, file = "center_5004t.RData")
+```
+```{r, center_5007tt, eval = F, include = F}
+load("simulation/rmd/center_5007_1t.RData") # simulation/rmd/
+load("simulation/rmd/center_5007_2t.RData")
+load("simulation/rmd/center_5007_3t.RData")
+load("simulation/rmd/center_5007_4t.RData")
+load("simulation/rmd/center_5007_5t.RData")
+center_5007 <- c(center_5007_1, center_5007_2, center_5007_3, center_5007_4, center_5007_5)
+for (i in seq_along(center_5007)) {
+    m_size[2, ] <- m_size[2, ] + center_5007[[i]][[1]]
+    m_sigma2_mse[2, ] <- m_sigma2_mse[2, ] + center_5007[[i]][[2]]
+    m_c0_mse[2, ] <- m_c0_mse[2, ] + center_5007[[i]][[3]]
+    m_calt_mse[2, ] <- m_calt_mse[2, ] + center_5007[[i]][[4]]
+    m_time[2, ] <- m_time[2, ] + center_5007[[i]][[5]]
+}
+seed.bs <- sapply(center_5007, seed <- function(l_list) {
+    l_list[[6]]
+})
+center_5007t <- list(
+    m_size[2, ],
+    m_sigma2_mse[2, ],
+    m_c0_mse[2, ],
+    m_calt_mse[2, ],
+    m_time[2, ],
+    seed.bs
+)
+save(center_5007t, file = "center_5007t.RData")
+```
+
+```{r, center_5004t, include = F}
+load("center_5004t.RData") # simulation/rmd/
+m_size[1, ] <- center_5004t[[1]] / 10
+m_sigma2_mse[1, ] <- center_5004t[[2]] / 10
+m_c0_mse[1, ] <- center_5004t[[3]] / 10
+m_calt_mse[1, ] <- center_5004t[[4]] / 10
+m_time[1, ] <- center_5004t[[5]] / 10
+```
+```{r, center_5007t, include = F}
+load("center_5007t.RData") # simulation/rmd/
+m_size[2, ] <- center_5007t[[1]] / 10
+m_sigma2_mse[2, ] <- center_5007t[[2]] / 10
+m_c0_mse[2, ] <- center_5007t[[3]] / 10
+m_calt_mse[2, ] <- center_5007t[[4]] / 10
+m_time[2, ] <- center_5007t[[5]] / 10
+```
+
+```{r, summary center_500t}
+print("summary for center 500 d")
+m_size
+m_sigma2_mse
+m_c0_mse
+m_calt_mse
+m_time
+```

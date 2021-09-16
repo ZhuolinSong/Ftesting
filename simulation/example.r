@@ -36,24 +36,27 @@ library(Matrix)
 library(Bolstad)
 library(splines)
 
-type_1(seed = 2021087, k = 7, n = 100, m = 5, L = 1,
-    mixed = T, fast.tn = F, semi.iter = F, center.bs = T, off_diag = F)
+type_1(seed = 2021087, k = 1, n = 100, m = 7, L = 1000,
+    mixed = T, fast.tn = T, semi.iter = F, center.bs = F, lambda = NULL)
 
-times <- seq(-1, 1, length.out = 80) # all possible time points
+
 # Example 1. Simulated data from null model, with 100 subjects and 80 obs/subj
+RNGkind("L'Ecuyer-CMRG", sample.kind = "Rej")
+set.seed(2021085)
 data <- gen.data(deviation = "trigonometric", nsubj = 100, r = 0, M = 7, mixed_m = T)
-
+times <- seq(-1, 1, length.out = 80) # all possible time points
 m_cov_truth <- 1 + tcrossprod(times) - 0.5 * times - 0.5 * matrix(rep(times, 80), 80, byrow = T)
-set.seed(2021083)
+set.seed(2021085)
 # Implement the tests
 system.time(face.b <- bootstrap.face(data, nbs = 1000, argvals.new = times,
-        semi.iter = F, fast.tn = F, center.bs = T, off_diag = F, gam.mgcv = F))
+        semi.iter = F, fast.tn = T, center.bs = F, off_diag = F, lambda = 0))
 
 face.b$p
+face.b$bs.approx
+face.b$Tn
 norm(face.b$C.null - m_cov_truth, type = "F")
 norm(face.b$C.alt - m_cov_truth, type = "F")
-
-
+mean((face.b$sigma2 - 1)^2)
 # v_rand <- c()
 # for(i in 1:10) {
 #     v_rand <- c(v_rand, rnorm(1))

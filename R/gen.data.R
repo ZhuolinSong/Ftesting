@@ -49,5 +49,6 @@ gen.data <- function(deviation = "quadratic",
     v_mi <- rep(M, nsubj)
   }
   obs.ind <- lapply(c(1:nsubj), function(x) sort(sample(c(1:length(argvals)), v_mi[x], replace = F)) + (x - 1) * length(argvals))
+
   return(full.data[unlist(obs.ind), ])
 }
