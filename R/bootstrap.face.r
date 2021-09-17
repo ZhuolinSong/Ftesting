@@ -369,12 +369,12 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
     bs.stats <- sqrt(colSums(bs.stats))
 
   } else {
-    while (bs.success < nbs) { #(0.25s)
+    while (bs.success < nbs) { #(0.6s)
 
-      ###### a. generate Y_ij^(l) (0.05s)
+      ###### a. generate Y_ij^(l) (0.01s)
       y <- c(resample(data, mean.bs, Rbar0.fit$coef.null, sigsq))
 
-      ###### b. center Y_ij^(l) (0.05s)
+      ###### b. center Y_ij^(l) (0.01s)
       r <- y
       if (center && center.bs) {
         this.bs$y <- r
@@ -390,7 +390,7 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
         "subj" = subj, "y" = as.vector(r)
       )
 
-      ###### c. Initialize C0^(l) (0.05s)
+      ###### c. Initialize C0^(l) (0.04s)
       fit.null.bs <- fitNull(data.demean.bs) # null fit
       if ("try-error" %in% class(fit.null.bs)) { # issue with null fit
         next # if problem
@@ -398,8 +398,8 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
       Rbar0.fit.bs <- calc.R0(fit.null.bs, st)
       C0.bs <- Rbar0.fit.bs$Rbar0
 
-      ###### d. Initialize C^(l) (0.05s)
-      C.bs <- raw.C(data.demean.bs) #(0.05s)
+      ###### d. Initialize C^(l) (0.00s)
+      C.bs <- raw.C(data.demean.bs) #(0.00s)
 
 
       ###### e. tunning(f, g, G) -> lambda_a^l (most inefficient 1s)
@@ -427,10 +427,10 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
         # recalculate estimation matrix (0.8s)
         m_est <- matrix.multiply(A0, 1 / (1 + lambda.bs * s)) %*% t(m_F)
       }
-
+#ptm <- proc.time()
       ###### f. calculate estimated covariance function and test statistics
-      # (0.05 s)
-# ptm <- proc.time()
+      # (0.00 s)
+
       if (fast.tn) {
         Tn.bs <- m_est[-c2, ] %*% (C.bs - C0.bs)
         Tn.bs <- norm(Xstar %*% Tn.bs, type = "F")
@@ -442,7 +442,7 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
 
       bs.stats <- c(bs.stats, Tn.bs) # save bs stats
       bs.success <- bs.success + 1
-# print(proc.time() - ptm)
+#print(proc.time() - ptm)
     }
   }
 

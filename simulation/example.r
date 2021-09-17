@@ -48,8 +48,8 @@ times <- seq(-1, 1, length.out = 80) # all possible time points
 m_cov_truth <- 1 + tcrossprod(times) - 0.5 * times - 0.5 * matrix(rep(times, 80), 80, byrow = T)
 set.seed(2021085)
 # Implement the tests
-system.time(face.b <- bootstrap.face(data, nbs = 1000, argvals.new = times,
-        semi.iter = F, fast.tn = T, center.bs = F, off_diag = F, lambda = 0))
+system.time(face.b <- bootstrap.face(data, nbs = 100, argvals.new = times,
+        semi.iter = F, fast.tn = T, center.bs = T, off_diag = F, lambda = 0))
 
 face.b$p
 face.b$bs.approx
