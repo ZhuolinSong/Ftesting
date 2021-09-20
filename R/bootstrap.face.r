@@ -37,7 +37,8 @@
 #' @references modified from face.sparse.inner from face package
 #' and bootstrap.test.R written by Stephanie
 bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
-                          fast.tn = T, semi.iter = F, center.bs = F,
+                          fast.tn = T, trunc.eig = T,
+                          semi.iter = F, center.bs = F,
                           tune.bs=F, center = TRUE,
                            knots = 7, knots.option = "equally-spaced",
                            p = 3, m = 2, lambda = NULL, lambda_mean = NULL,
@@ -103,7 +104,8 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
   # v_idx <- which(delta == 0)
   # B[v_idx, ] <- sqrt(2) * B[v_idx, ]
   if (off_diag) {
-    B <-  B * (sqrt(2) * (1 - delta) + delta)
+    B <- B * (sqrt(2) * (1 - delta) + delta)
+    C <- C * (sqrt(2) * (1 - delta) + delta)
   }
 
   # BtWB <- matrix(0, nrow = c^2, ncol = c^2)
@@ -208,6 +210,9 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
     sigsq1 <- as.numeric(var.mat[2, 1])
     cov01 <- as.numeric(var.mat[2, 3]) * sqrt(sigsq0 * sigsq1) # corr->cov
     Rbar0 <- sigsq0 + cov01 * (times[, 1] + times[, 2]) + sigsq1 * (times[, 1] * times[, 2])
+    if (off_diag) {
+      Rbar0 <- Rbar0 * (sqrt(2) * (1 - delta) + delta)
+    }
     list(Rbar0 = Rbar0, coef.null = c(sigsq0, cov01, sigsq1))
   }
 
@@ -255,20 +260,23 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
       # warning("error variance cannot be non-positive, reset to 1e-6!")
       sigma2 <- 0.000001
     }
-    # if (!fast.tn) {
-    #   # make sure Theta positive definite(2 eigens)
-    #   Eigen <- eigen(Theta, symmetric = TRUE)
-    #   Eigen$values[Eigen$values < 0] <- 0
-    #   npc <- sum(Eigen$values > 0) # which.max(cumsum(Eigen$values)/sum(Eigen$values)>pve)[1]
-    #   if (npc > 1) {
-    #     Theta <- matrix.multiply(Eigen$vectors[, 1:npc], Eigen$values[1:npc]) %*% t(Eigen$vectors[, 1:npc])
-    #   }
-    #   if (npc == 1) {
-    #     Theta <- Eigen$values[1] * suppressMessages(kronecker(Eigen$vectors[, 1], t(Eigen$vectors[, 1])))
-    #   }
-    # }
-    #Eigen <- eigen(Theta, symmetric = TRUE)
-    list(C = as.matrix(tcrossprod(Bnew %*% Matrix(Theta), Bnew)),
+    if (!fast.tn && trunc.eig) {
+      # make sure Theta positive definite(2 eigens)
+      Eigen <- eigen(Theta, symmetric = TRUE)
+      Eigen$values[Eigen$values < 0] <- 0
+      npc <- sum(Eigen$values > 0) # which.max(cumsum(Eigen$values)/sum(Eigen$values)>pve)[1]
+      if (npc > 1) {
+        pc <- Bnew %*% Eigen$vectors[, 1:npc]
+        C <- tcrossprod(matrix.multiply(pc, Eigen$values[1:npc]), pc)
+      }
+      if (npc == 1) {
+        C <- Eigen$values[1] * tcrossprod(Bnew %*% Eigen$vectors[, 1])
+      }
+    } else {
+       C <- as.matrix(tcrossprod(Bnew %*% Matrix(Theta), Bnew))
+    }
+
+    list(C = C,
          sigma2 = sigma2)
   }
 
@@ -288,6 +296,30 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
   #########################
   #### step 2: Bootstrap
   #########################
+
+  trun_mat2 <- function(C) {
+    alpha <- m_est[-c2, ] %*% C
+    Theta <- G %*% alpha
+    Theta <- matrix(Theta, c, c)
+
+    if (trunc.eig) {
+      # make sure Theta positive definite(2 eigens)
+      Eigen <- eigen(Theta, symmetric = TRUE)
+      Eigen$values[Eigen$values < 0] <- 0
+      npc <- sum(Eigen$values > 0) # which.max(cumsum(Eigen$values)/sum(Eigen$values)>pve)[1]
+      if (npc > 1) {
+        pc <- Bnew %*% Eigen$vectors[, 1:npc]
+        C <- tcrossprod(matrix.multiply(pc, Eigen$values[1:npc]), pc)
+      }
+      if (npc == 1) {
+        C <- Eigen$values[1] * tcrossprod(Bnew %*% Eigen$vectors[, 1])
+      }
+    } else {
+        C <- as.matrix(tcrossprod(Bnew %*% Matrix(Theta), Bnew))
+    }
+    return(C)
+  }
+
   raw.C <- function(data) {
     y <- data$y
     subj <- data$subj
@@ -304,6 +336,9 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
         C <- c(C, r1^2)
       }
     } ## for i
+    if (off_diag) {
+      C <- C * (sqrt(2) * (1 - delta) + delta)
+    }
     C
   }
 
@@ -395,8 +430,8 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
       if ("try-error" %in% class(fit.null.bs)) { # issue with null fit
         next # if problem
       }
-      Rbar0.fit.bs <- calc.R0(fit.null.bs, st)
-      C0.bs <- Rbar0.fit.bs$Rbar0
+      
+      C0.bs <- calc.R0(fit.null.bs, st)$Rbar0
 
       ###### d. Initialize C^(l) (0.00s)
       C.bs <- raw.C(data.demean.bs) #(0.00s)
@@ -435,8 +470,8 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
         Tn.bs <- m_est[-c2, ] %*% (C.bs - C0.bs)
         Tn.bs <- norm(Xstar %*% Tn.bs, type = "F")
       } else {
-        C.alt.bs <- trun_mat(C.bs)$C
-        C.null.bs <- trun_mat(C0.bs)$C
+        C.alt.bs <- trun_mat2(C.bs)
+        C.null.bs <- trun_mat2(C0.bs)
         Tn.bs <- norm(C.alt.bs - C.null.bs, type = "F")
       }
 

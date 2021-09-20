@@ -36,8 +36,8 @@ library(Matrix)
 library(Bolstad)
 library(splines)
 
-type_1(seed = 2021087, k = 1, n = 100, m = 7, L = 1000,
-    mixed = T, fast.tn = T, semi.iter = F, center.bs = F, lambda = NULL)
+type_1(seed = 2021087, k = 50, n = 100, m = 7, L = 1, mixed = T,
+fast.tn = F, trunc.eig = T, center.bs = F, off_diag = T, lambda = NULL)
 
 
 # Example 1. Simulated data from null model, with 100 subjects and 80 obs/subj
@@ -48,8 +48,8 @@ times <- seq(-1, 1, length.out = 80) # all possible time points
 m_cov_truth <- 1 + tcrossprod(times) - 0.5 * times - 0.5 * matrix(rep(times, 80), 80, byrow = T)
 set.seed(2021085)
 # Implement the tests
-system.time(face.b <- bootstrap.face(data, nbs = 100, argvals.new = times,
-        semi.iter = F, fast.tn = T, center.bs = T, off_diag = F, lambda = 0))
+system.time(face.b <- bootstrap.face(data, nbs = 10, argvals.new = times,
+        semi.iter = F, fast.tn = T, center.bs = F, lambda = 0))
 
 face.b$p
 face.b$bs.approx
@@ -152,9 +152,11 @@ max(count)
 # No log-transform stepface
 data <- data.frame(y = value, argvals = index, subj = id)
 system.time(face.b1 <- bootstrap.face(data, nbs = 1000, argvals.new = times,
-        semi.iter = F, fast.tn = F, center.bs = T, gam.mgcv = T))
+fast.tn = T, trunc.eig = T, center.bs = T, off_diag = T, lambda = 0))
 
+face.b1$p
 # log-transform stepface
 data <- data.frame(y = log(value), argvals = index, subj = id)
 system.time(face.b2 <- bootstrap.face(data, nbs = 1000, argvals.new = times,
-        semi.iter = F, fast.tn = F, center.bs = T, gam.mgcv = T))
+fast.tn = F, trunc.eig = T, center.bs = F, off_diag = F, lambda = NULL))
+face.b2$p
