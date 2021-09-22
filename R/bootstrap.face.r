@@ -255,7 +255,7 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
     # warning("error variance cannot be non-positive, reset to 1e-6!")
     sigsq <- 0.000001
   }
-  if (no.pen || lambda == 1) {
+  if (no.pen || lambda == 0) {
     m_est <- A0[-c2, ] %*% t(m_F)
   } else {
     m_est <- matrix.multiply(A0[-c2, ], 1 / (1 + lambda * s)) %*% t(m_F)
