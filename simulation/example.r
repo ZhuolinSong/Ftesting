@@ -36,8 +36,9 @@ library(Matrix)
 library(Bolstad)
 library(splines)
 
-type_1(seed = 2021087, k = 50, n = 100, m = 7, L = 1, mixed = T,
-fast.tn = F, trunc.eig = T, center.bs = F, off_diag = T, lambda = NULL)
+type_1(seed = 2021087, k = 1, n = 100, m = 7, L = 1, mixed = T,
+knots.option = "quantile", fast.tn = T, trunc.eig = F, #"equally-spaced"
+center.bs = F, off_diag = F, no.pen = T)
 
 
 # Example 1. Simulated data from null model, with 100 subjects and 80 obs/subj
@@ -49,7 +50,7 @@ m_cov_truth <- 1 + tcrossprod(times) - 0.5 * times - 0.5 * matrix(rep(times, 80)
 set.seed(2021085)
 # Implement the tests
 system.time(face.b <- bootstrap.face(data, nbs = 10, argvals.new = times,
-        semi.iter = F, fast.tn = T, center.bs = F, lambda = 0))
+knots.option = "equally_spaced", fast.tn = T, center.bs = F, no.pen = T))
 
 face.b$p
 face.b$bs.approx

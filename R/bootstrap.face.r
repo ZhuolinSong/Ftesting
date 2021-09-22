@@ -39,12 +39,12 @@
 bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
                           fast.tn = T, trunc.eig = T,
                           semi.iter = F, center.bs = F,
-                          tune.bs=F, center = TRUE,
+                          center = TRUE,
                            knots = 7, knots.option = "equally-spaced",
                            p = 3, m = 2, lambda = NULL, lambda_mean = NULL,
                            search.length = 14,
                            lower = -3, upper = 10,
-                           pve = 0.99, off_diag = F, gam.mgcv = T) {
+                           pve = 0.99, off_diag = F, gam.mgcv = T, no.pen = F) {
   #########################
   #### step 0: read in data
   #########################
@@ -249,18 +249,28 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
   }
 
   ###### e. calculate estimated covariance function and test statistics
-  m_est <- matrix.multiply(A0, 1 / (1 + lambda * s)) %*% t(m_F)
+  m_est_sigma <- (t(A0[c2, ]) * t(1 / (1 + lambda * s))) %*% t(m_F)
+  sigsq <- m_est_sigma %*% C
+  if (sigsq <= 0.000001) {
+    # warning("error variance cannot be non-positive, reset to 1e-6!")
+    sigsq <- 0.000001
+  }
+  if (no.pen || lambda == 1) {
+    m_est <- A0[-c2, ] %*% t(m_F)
+  } else {
+    m_est <- matrix.multiply(A0[-c2, ], 1 / (1 + lambda * s)) %*% t(m_F)
+  }
 
   trun_mat <- function(C) {
     alpha <- m_est %*% C
-    Theta <- G %*% alpha[1:(c2 - 1)]
+    Theta <- G %*% alpha
     Theta <- matrix(Theta, c, c)
-    sigma2 <- alpha[c2]
-    if (sigma2 <= 0.000001) {
-      # warning("error variance cannot be non-positive, reset to 1e-6!")
-      sigma2 <- 0.000001
-    }
-    if (!fast.tn && trunc.eig) {
+    # sigma2 <- alpha[c2]
+    # if (sigma2 <= 0.000001) {
+    #   # warning("error variance cannot be non-positive, reset to 1e-6!")
+    #   sigma2 <- 0.000001
+    # }
+    if (trunc.eig) {
       # make sure Theta positive definite(2 eigens)
       Eigen <- eigen(Theta, symmetric = TRUE)
       Eigen$values[Eigen$values < 0] <- 0
@@ -275,18 +285,17 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
     } else {
        C <- as.matrix(tcrossprod(Bnew %*% Matrix(Theta), Bnew))
     }
-
-    list(C = C,
-         sigma2 = sigma2)
+    C
+    # list(C = C, sigma2 = sigma2)
   }
 
-  l_mat <- trun_mat(C)
-  sigsq <- l_mat$sigma2
-  C.alt <- l_mat$C
-  C.null <- trun_mat(C0)$C
+
+  # sigsq <- l_mat$sigma2
+  C.alt <- trun_mat(C)
+  C.null <- trun_mat(C0)
 
   if (fast.tn) {
-    Tn <- (m_est[-c2, ] %*% (C0 - C))
+    Tn <- (m_est %*% (C0 - C))
     Tn <- norm(Xstar %*% Tn, type = "F")
   } else {
     Tn <- norm(C.alt - C.null, type = "F")
@@ -298,7 +307,7 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
   #########################
 
   trun_mat2 <- function(C) {
-    alpha <- m_est[-c2, ] %*% C
+    alpha <- m_est %*% C
     Theta <- G %*% alpha
     Theta <- matrix(Theta, c, c)
 
@@ -397,7 +406,7 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
     }
 # ptm <- proc.time()
     # Compute delta.bs (0.17 s)
-    delta.bs <- m_est[-c2, ] %*% Matrix(C.bs)
+    delta.bs <- m_est %*% Matrix(C.bs)
 # print(proc.time() - ptm)
     # compute bs statistics (0 s)
     bs.stats <- (Xstar %*% delta.bs) ^ 2
@@ -437,37 +446,13 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
       C.bs <- raw.C(data.demean.bs) #(0.00s)
 
 
-      ###### e. tunning(f, g, G) -> lambda_a^l (most inefficient 1s)
-      if (tune.bs) {
-        ## f, g, G(G1 here), Li (0.1s)
-        f <- crossprod(m_F, C.bs) # f=FTC
-        for (i in 1:n0) {
-          seq <- (sum(N2[1:i]) - N2[i] + 1):(sum(N2[1:i]))
-          Fi <- matrix(m_F[seq, ], nrow = length(seq))
-          Li <- mat_list[[i]][[1]]
 
-          fi <- crossprod(Fi, C.bs[seq]) # t(Fi)Ci
-          g <- g + fi * fi
-          G1 <- G1 + Li * (fi %*% t(f))
-        }
-
-        # tunning step (0.02 s)
-        Gcv.bs <- rep(0, search.length)
-        for (i in 1:search.length) {
-          Gcv.bs[i] <- gcv(Lambda[i])
-        }
-        i0 <- which.min(Gcv.bs)
-        lambda.bs <- exp(Lambda[i0]) # lambda^*
-
-        # recalculate estimation matrix (0.8s)
-        m_est <- matrix.multiply(A0, 1 / (1 + lambda.bs * s)) %*% t(m_F)
-      }
 #ptm <- proc.time()
-      ###### f. calculate estimated covariance function and test statistics
+      ###### e. calculate estimated covariance function and test statistics
       # (0.00 s)
 
       if (fast.tn) {
-        Tn.bs <- m_est[-c2, ] %*% (C.bs - C0.bs)
+        Tn.bs <- m_est %*% (C.bs - C0.bs)
         Tn.bs <- norm(Xstar %*% Tn.bs, type = "F")
       } else {
         C.alt.bs <- trun_mat2(C.bs)
