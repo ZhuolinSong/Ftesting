@@ -247,8 +247,9 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
     i0 <- which.min(Gcv)
     lambda <- exp(Lambda[i0]) # lambda^*
   }
-
+  
   ###### e. calculate estimated covariance function and test statistics
+  Xxstar <- crossprod(Bnew)
   m_est_sigma <- (t(A0[c2, ]) * t(1 / (1 + lambda * s))) %*% t(m_F)
   sigsq <- m_est_sigma %*% C
   if (sigsq <= 0.000001) {
@@ -296,6 +297,8 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
 
   if (fast.tn) {
     Tn <- (m_est %*% (C0 - C))
+    DX <- Xxstar %*% matrix(G %*% Tn, c)
+    print(sqrt(sum(DX * t(DX))))
     Tn <- norm(Xstar %*% Tn, type = "F")
   } else {
     Tn <- norm(C.alt - C.null, type = "F")
@@ -414,7 +417,7 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
 
   } else {
     while (bs.success < nbs) { #(0.6s)
-
+#ptm <- proc.time()
       ###### a. generate Y_ij^(l) (0.01s)
       y <- c(resample(data, mean.bs, Rbar0.fit$coef.null, sigsq))
 
@@ -439,7 +442,7 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
       if ("try-error" %in% class(fit.null.bs)) { # issue with null fit
         next # if problem
       }
-      
+
       C0.bs <- calc.R0(fit.null.bs, st)$Rbar0
 
       ###### d. Initialize C^(l) (0.00s)
@@ -447,7 +450,7 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
 
 
 
-#ptm <- proc.time()
+
       ###### e. calculate estimated covariance function and test statistics
       # (0.00 s)
 
@@ -463,6 +466,7 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
       bs.stats <- c(bs.stats, Tn.bs) # save bs stats
       bs.success <- bs.success + 1
 #print(proc.time() - ptm)
+
     }
   }
 
