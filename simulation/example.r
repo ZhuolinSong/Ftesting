@@ -37,7 +37,7 @@ library(Bolstad)
 library(splines)
 
 type_1(seed = 2021087, k = 1, n = 100, m = 7, L = 10, mixed = T,
-fast.tn = T, trunc.eig = F, #"equally-spaced"
+trunc.eig = F, #"equally-spaced"
 center.bs = F, off_diag = F, no.pen = T)
 
 
@@ -50,7 +50,7 @@ m_cov_truth <- 1 + tcrossprod(times) - 0.5 * times - 0.5 * matrix(rep(times, 80)
 set.seed(2021085)
 # Implement the tests
 system.time(face.b <- bootstrap.face(data, nbs = 1000, argvals.new = times,
-fast.tn = T, center.bs = T, no.pen = T))
+center.bs = T, no.pen = F, trunc.eig = 1))
 
 face.b$p
 face.b$bs.approx
@@ -153,7 +153,7 @@ max(count)
 # No log-transform stepface
 data <- data.frame(y = value, argvals = index, subj = id)
 system.time(face.b1 <- bootstrap.face(data, nbs = 1000, argvals.new = times,
-fast.tn = T, trunc.eig = T, center.bs = T, off_diag = T, lambda = 0))
+trunc.eig = T, center.bs = T, off_diag = T, no.pen = F))
 
 face.b1$p
 # log-transform stepface

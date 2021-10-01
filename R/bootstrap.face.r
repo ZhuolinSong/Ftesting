@@ -10,7 +10,6 @@
 #' @param nbs number of bootstrap samples, default = 1000
 #' @param argvals.new  "argvals.new" if we want the estimated covariance function at "argvals.new"; if NULL,
 #' then 100 equidistant points in the range of "argvals" in "data"
-#' @param fast.tn indicator whether to use fast tn calculation
 #' @param semi.iter indicator whether to use semi_iterative for bootstrap
 #' @param tune.bs indicator whether to use tunning for bootstrap
 #' @param center   "center" means if we want to compute population mean
@@ -37,20 +36,17 @@
 #' @references modified from face.sparse.inner from face package
 #' and bootstrap.test.R written by Stephanie
 bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
-                          fast.tn = T, trunc.eig = T,
+                          trunc.eig = 1,
                           semi.iter = F, center.bs = F,
                           center = TRUE,
                            knots = 7, knots.option = "equally-spaced",
                            p = 3, m = 2, lambda = NULL, lambda_mean = NULL,
                            search.length = 14,
                            lower = -3, upper = 10,
-                           pve = 0.99, off_diag = F, gam.mgcv = T, no.pen = F) {
+                           pve = 0.99, off_diag = F, gam.mgcv = T, no.pen = F, dense.grid = 8e5) {
   #########################
   #### step 0: read in data
   #########################
-  if (!fast.tn && semi.iter) {
-    warning("semi.iter won't truncate the estimated covariance matrix!")
-  }
   check.data(data)
   nb <- knots + p
 
@@ -182,16 +178,21 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
     }
     st
   }
-  stnew <- st.construct(tnew)
-  Bnew1 <- spline.des(knots = knots, x = stnew[, 1], ord = p + 1, outer.ok = TRUE, sparse = TRUE)$design
-  Bnew2 <- spline.des(knots = knots, x = stnew[, 2], ord = p + 1, outer.ok = TRUE, sparse = TRUE)$design
-  Bstar <- Matrix(t(KhatriRao(Matrix(t(Bnew2)), Matrix(t(Bnew1)))))
+  #stnew <- st.construct(tnew)
+  #Bnew1 <- spline.des(knots = knots, x = stnew[, 1], ord = p + 1, outer.ok = TRUE, sparse = TRUE)$design
+  #Bnew2 <- spline.des(knots = knots, x = stnew[, 2], ord = p + 1, outer.ok = TRUE, sparse = TRUE)$design
+  #Bstar <- Matrix(t(KhatriRao(Matrix(t(Bnew2)), Matrix(t(Bnew1)))))
 
 
-  Xstar <- Bstar %*% G
-  delta_star <- which(stnew[, 1] != stnew[, 2])
-  Xstar[delta_star, ] <- sqrt(2) * Xstar[delta_star, ]
-
+  #Xstar <- Bstar %*% G
+  #delta_star <- which(stnew[, 1] != stnew[, 2])
+  #Xstar[delta_star, ] <- sqrt(2) * Xstar[delta_star, ]
+  dense.t <- seq(min(tnew), max(tnew), length.out = dense.grid)
+  Xstar <- spline.des(knots = knots, x = dense.t, ord = p + 1, outer.ok = TRUE, sparse = TRUE)$design
+  Xstar <- crossprod(Xstar) / dense.grid
+  Eigen1 <- eigen(Xstar)
+  Xstar.half <- Eigen1$vectors %*% diag(sqrt(Eigen1$values)) %*% t(Eigen1$vectors)
+  Xstar.invhalf <- Eigen1$vectors %*% diag(1 / sqrt(Eigen1$values)) %*% t(Eigen1$vectors)
 
   Bnew <- spline.des(knots = knots, x = tnew, ord = p + 1, outer.ok = TRUE, sparse = TRUE)$design
 
@@ -247,7 +248,7 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
     i0 <- which.min(Gcv)
     lambda <- exp(Lambda[i0]) # lambda^*
   }
-  
+
   ###### e. calculate estimated covariance function and test statistics
   Xxstar <- crossprod(Bnew)
   m_est_sigma <- (t(A0[c2, ]) * t(1 / (1 + lambda * s))) %*% t(m_F)
@@ -271,7 +272,7 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
     #   # warning("error variance cannot be non-positive, reset to 1e-6!")
     #   sigma2 <- 0.000001
     # }
-    if (trunc.eig) {
+    if (trunc.eig != 0) {
       # make sure Theta positive definite(2 eigens)
       Eigen <- eigen(Theta, symmetric = TRUE)
       Eigen$values[Eigen$values < 0] <- 0
@@ -286,51 +287,43 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
     } else {
        C <- as.matrix(tcrossprod(Bnew %*% Matrix(Theta), Bnew))
     }
-    C
-    # list(C = C, sigma2 = sigma2)
+    list(C = C, Theta = Theta)
   }
+
+  trunc.mat.inner <- function(Theta, trunc.eig = 1) {
+  if (trunc.eig == 1) {
+    eigen.fit <- eigen(Theta, symmetric = T)
+    efuncs <- eigen.fit$vectors
+  } else if (trunc.eig == 2) {
+    Theta <- as.matrix(Xstar.half %*% Matrix(Theta) %*% Xstar.half)
+    eigen.fit <- eigen(Theta, symmetric = T)
+    efuncs <- Xstar.invhalf %*% eigen.fit$vectors
+  }
+  evals <- as.numeric(eigen.fit$values)
+  evals[evals < 1e-5] <- 0
+  return(matrix.multiply(efuncs, evals) %*% t(efuncs))
+}
 
 
   # sigsq <- l_mat$sigma2
   C.alt <- trun_mat(C)
   C.null <- trun_mat(C0)
 
-  if (fast.tn) {
-    Tn <- (m_est %*% (C0 - C))
-    DX <- Xxstar %*% matrix(G %*% Tn, c)
-    print(sqrt(sum(DX * t(DX))))
-    Tn <- norm(Xstar %*% Tn, type = "F")
+  if (trunc.eig == 0) {
+    Tn <- C.alt$Theta - C.null$Theta
   } else {
-    Tn <- norm(C.alt - C.null, type = "F")
+    Theta.alt <- trunc.mat.inner(C.alt$Theta, trunc.eig)
+    Theta.null <- trunc.mat.inner(C.null$Theta, trunc.eig)
+    Tn <- Theta.alt - Theta.null
   }
 
+  Tn <- Tn %*% Xstar
+  Tn <- sqrt(sum(Tn * t(Tn)))
 
   #########################
   #### step 2: Bootstrap
   #########################
 
-  trun_mat2 <- function(C) {
-    alpha <- m_est %*% C
-    Theta <- G %*% alpha
-    Theta <- matrix(Theta, c, c)
-
-    if (trunc.eig) {
-      # make sure Theta positive definite(2 eigens)
-      Eigen <- eigen(Theta, symmetric = TRUE)
-      Eigen$values[Eigen$values < 0] <- 0
-      npc <- sum(Eigen$values > 0) # which.max(cumsum(Eigen$values)/sum(Eigen$values)>pve)[1]
-      if (npc > 1) {
-        pc <- Bnew %*% Eigen$vectors[, 1:npc]
-        C <- tcrossprod(matrix.multiply(pc, Eigen$values[1:npc]), pc)
-      }
-      if (npc == 1) {
-        C <- Eigen$values[1] * tcrossprod(Bnew %*% Eigen$vectors[, 1])
-      }
-    } else {
-        C <- as.matrix(tcrossprod(Bnew %*% Matrix(Theta), Bnew))
-    }
-    return(C)
-  }
 
   raw.C <- function(data) {
     y <- data$y
@@ -454,14 +447,15 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
       ###### e. calculate estimated covariance function and test statistics
       # (0.00 s)
 
-      if (fast.tn) {
-        Tn.bs <- m_est %*% (C.bs - C0.bs)
-        Tn.bs <- norm(Xstar %*% Tn.bs, type = "F")
+      if (trunc.eig == 0) {
+        Tn.bs <- matrix(G %*% (m_est %*% (C.bs - C0.bs)), c)
       } else {
-        C.alt.bs <- trun_mat2(C.bs)
-        C.null.bs <- trun_mat2(C0.bs)
-        Tn.bs <- norm(C.alt.bs - C.null.bs, type = "F")
+        Theta.alt <- trunc.mat.inner(matrix(G %*% (m_est %*% C.bs), c), trunc.eig)
+        Theta.null <- trunc.mat.inner(matrix(G %*% (m_est %*% C0.bs), c), trunc.eig)
+        Tn.bs <- Theta.alt - Theta.null
       }
+      Tn.bs <- Tn.bs %*% Xstar
+      Tn.bs <- sqrt(sum(Tn.bs * t(Tn.bs)))
 
       bs.stats <- c(bs.stats, Tn.bs) # save bs stats
       bs.success <- bs.success + 1
@@ -483,8 +477,8 @@ bootstrap.face <- function(data, nbs = 1000, argvals.new = NULL,
 
   list(
     mu = fit_mean$fitted.values,
-    C.alt = C.alt,
-    C.null = C.null,
+    C.alt = C.alt$C,
+    C.null = C.null$C,
     sigma2 = sigsq,
     Tn = Tn, p = Tn.stats$p, p.var = Tn.stats$var,
     bs.approx = bs.stats
