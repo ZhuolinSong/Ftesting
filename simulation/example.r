@@ -50,7 +50,7 @@ m_cov_truth <- 1 + tcrossprod(times) - 0.5 * times - 0.5 * matrix(rep(times, 80)
 set.seed(2021085)
 # Implement the tests
 system.time(face.b <- bootstrap.face(data, nbs = 1000, argvals.new = times,
-center.bs = T, no.pen = F, trunc.eig = 1))
+center.bs = T, no.pen = F, trunc.eig = 2))
 
 face.b$p
 face.b$bs.approx

@@ -708,7 +708,7 @@ m_time[2, ] <- center_5007t[[5]] / 10
 ```
 
 ```{r, summary center_500t}
-print("summary for center 500 d")
+print("summary for center 500 t")
 m_size
 m_sigma2_mse
 m_c0_mse
